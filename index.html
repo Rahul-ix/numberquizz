@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mind Game</title>
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f9f9f9;
+    }
+
+    .container {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        position: relative;
+    }
+
+    #game-board {
+        display: grid;
+        grid-template-columns: repeat(4, 80px);
+        grid-template-rows: repeat(4, 80px);
+        gap: 10px;
+        border: 2px solid #333;
+        border-radius: 10px;
+        background-color: #eee;
+        padding: 10px;
+    }
+
+    .cell {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #ccc;
+        border: 1px solid #fff;
+        font-size: 24px;
+        color: #333;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+
+    .cell.hidden {
+        color: transparent;
+    }
+
+    .cell.correct {
+        background-color: #2ecc40;
+    }
+
+    .cell.incorrect {
+        background-color: #ff4136;
+    }
+
+    #score {
+        text-align: right;
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+
+    #timer {
+        text-align: left;
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+
+    #success {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 48px;
+        font-weight: bold;
+        color: #2ecc40;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+    }
+
+    .show {
+        opacity: 1;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <div id="score">Score: <span id="score-value">0</span></div>
+    <div id="timer">Time: <span id="time-value">60</span></div>
+    <div id="game-board"></div>
+    <div id="success">Congratulations!</div>
+</div>
+
+<script>
+    const numbers = Array.from({ length: 16 }, (_, i) => i + 1);
+    let shuffledNumbers = shuffle(numbers);
+    let flippedCells = [];
+    let score = 0;
+    let time = 60;
+
+    const board = document.getElementById('game-board');
+    const scoreDisplay = document.getElementById('score-value');
+    const timeDisplay = document.getElementById('time-value');
+    const successDiv = document.getElementById('success');
+
+    // Initialize the game board
+    shuffledNumbers.forEach((number, index) => {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.textContent = number;
+        cell.addEventListener('click', () => flipCell(cell, number));
+        board.appendChild(cell);
+    });
+
+    // Start countdown timer
+    const timerInterval = setInterval(() => {
+        time--;
+        timeDisplay.textContent = time;
+        if (time <= 0) {
+            endGame();
+        }
+    }, 1000);
+
+    // Shuffle function
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    // Flip cell function
+    function flipCell(cell, number) {
+        if (!flippedCells.includes(cell)) {
+            cell.classList.add('hidden');
+            flippedCells.push(cell);
+
+            if (parseInt(cell.textContent) === number) {
+                cell.classList.add('correct');
+                score++;
+            } else {
+                cell.classList.add('incorrect');
+                score--;
+            }
+
+            scoreDisplay.textContent = score;
+
+            if (flippedCells.length === 16) {
+                endGame();
+            }
+        }
+    }
+
+    // End game function
+    function endGame() {
+        clearInterval(timerInterval);
+        if (score === 16) {
+            successDiv.classList.add('show');
+        }
+        setTimeout(() => {
+            alert('Game Over! Your score: ' + score);
+            resetGame();
+        }, 500);
+    }
+
+    // Reset game function
+    function resetGame() {
+        shuffledNumbers = shuffle(numbers);
+        flippedCells.forEach(cell => {
+            cell.classList.remove('hidden', 'correct', 'incorrect');
+        });
+        flippedCells = [];
+        score = 0;
+        time = 60;
+        scoreDisplay.textContent = score;
+        timeDisplay.textContent = time;
+        successDiv.classList.remove('show');
+
+        shuffledNumbers.forEach((number, index) => {
+            const cell = board.children[index];
+            cell.textContent = number;
+        });
+
+        // Restart countdown timer
+        setInterval(() => {
+            time--;
+            timeDisplay.textContent = time;
+            if (time <= 0) {
+                endGame();
+            }
+        }, 1000);
+    }
+</script>
+</body>
+</html>
